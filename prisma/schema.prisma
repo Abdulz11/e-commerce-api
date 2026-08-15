@@ -1,0 +1,72 @@
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = "js"
+  generatedFileExtension = "js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL_MONGODBONLINE")
+}
+
+model Store{
+  //id Int @id @default(autoincrement())
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String 
+  email String @unique
+  description String?
+  password String
+  role String @default("STORE")
+  whatsapp String?
+  location String?
+  createdAt DateTime @default(now())
+  products Product[]
+  
+}
+
+model Product{
+  //id Int @id @default(autoincrement())
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String
+  imageUrls String[]
+  imageIds String[]
+  category String
+  tag String[]
+  price Int
+  currency String @default("₦")
+  quantity Int
+  storeId String @db.ObjectId 
+  store Store @relation(fields:[storeId],references:[id])
+  createdAt DateTime @default(now())
+  cart CartItem[]
+}
+
+model Customer{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String 
+  email String @unique
+  password String
+  role String @default("CUSTOMER")
+  cart CartItem[]
+  createdAt DateTime @default(now())
+
+}
+
+model CartItem{
+  id String @default(auto()) @id @map("_id") @db.ObjectId
+  name String
+  description String
+  currency String @default("$")
+  price Int
+  quantity Int
+  imageUrl String
+  userId String @db.ObjectId
+  productId String @db.ObjectId
+  user Customer @relation(fields:[userId],references:[id])
+  product Product @relation(fields:[productId],references:[id])
+
+}

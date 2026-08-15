@@ -1,0 +1,18 @@
+POST http://localhost:3000/user/registration
+Content-Type: application/json
+
+{  "name": "ronaldo",
+  "email": "ronaldo2@gmail.com",
+  "password": "secondbestplayerintheworld"
+}
+
+###
+POST http://localhost:3000/user/signin
+Content-Type: application/json
+
+{  
+  "email": "ronaldo2@gmail.com",
+  "password": "secondbestplayerintheworld"
+}
+###
+POST http://localhost:3000/user/registration
