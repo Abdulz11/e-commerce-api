@@ -1,19 +1,60 @@
 const cloudinary = require("../cloudinary/cloudinary");
 const prisma = require("../db/db");
 const { uploadFileToCloudinary } = require("../lib/uploadImages");
+const catAndSubCatEnums = require("../enums/CatandSubCatEnums");
 
-const getEnums = async () => {};
-const getAllProducts = async (req, res) => {
+const getCatAndSubCatEnums = () => {
+  return res.status(200).send(catAndSubCatEnums);
+};
+
+const editProduct = async (req, res, next) => {
+  const storeId = req?.user?.id;
+  const productId = req.params.productId;
+  const data = req.body;
+  try {
+    const product = await prisma.product.findFirst({
+      where: { id: productId, storeid: storeId },
+    });
+
+    if (!product) {
+      return res.status(403).send({
+        message:
+          "This product does not exist or you do not have permission to update it.",
+      });
+    }
+    const updatedProduct = await prisma.product.update({
+      where: { id: productId, storeid: storeId },
+      data: data,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+const getAllProducts = async (req, res, next) => {
   const category = req?.query?.category;
+  console.log("category", category);
+  // console.log(await prisma.category.findMany());
+  // return res.send();
 
   let products;
-  if (category) {
-    products = await prisma.product.findMany({ where: { category: category } });
-  } else {
-    products = await prisma.product.findMany();
+  try {
+    if (category) {
+      products = await prisma.product.findMany({
+        where: {
+          subCategory: {
+            category: {
+              name: category,
+            },
+          },
+        },
+      });
+    } else {
+      products = await prisma.product.findMany();
+    }
+    return res.send(products);
+  } catch (e) {
+    next(e);
   }
-
-  return res.send(products);
 };
 
 const postProduct = async (req, res, next) => {
@@ -72,11 +113,14 @@ const postProduct = async (req, res, next) => {
 const getStoreProducts = async (req, res) => {
   const storeId = req.params.storeId;
 
+  const productsCount = await prisma.product.count({
+    where: { storeId: storeId },
+  });
   const products = await prisma.product.findMany({
     where: { storeId: storeId },
   });
 
-  res.send(products);
+  res.send({ products, productsCount });
 };
 
 const getStoreInfo = async (req, res) => {
@@ -106,9 +150,12 @@ const getProduct = async (req, res, next) => {
 };
 
 module.exports = {
+  getCatAndSubCatEnums,
   getAllProducts,
   postProduct,
   getProduct,
   getStoreProducts,
   getStoreInfo,
+  // getEnums,
+  editProduct,
 };

@@ -10,6 +10,41 @@ const getStores = async (req, res) => {
   res.send({ stores });
 };
 
+const getStoreInfo = async (req, res) => {
+  const storeId = req.params.storeId;
+  const store = await prisma.store.findUnique({
+    where: { id: storeId },
+  });
+
+  if (!store) {
+    return res.send("Store id dosent exist");
+  }
+  const { name, email, whatsapp, location, description } = store;
+  return res.send({ name, email, whatsapp, location, description });
+};
+
+const editProfile = async (req, res, next) => {
+  const storeId = req.params.storeId;
+  if (storeId !== req.user.id) {
+    return res.status(403).send({ message: "Unauthorized" });
+  }
+
+  const { img, ...data } = req.body;
+  try {
+    const store = await prisma.store.findUnique({ where: { id } });
+
+    if (store) {
+      const updatedStore = await prisma.store.update({
+        where: { id },
+        data: data,
+      });
+    }
+    res.status(200).send({ message: "Updated successfully" });
+  } catch (e) {
+    next(e);
+  }
+};
+
 const registerStore = async (req, res, next) => {
   try {
     // check if email has been used
@@ -105,5 +140,7 @@ module.exports = {
   registerStore,
   signInStore,
   logOut,
+  editProfile,
   getNewAccessToken,
+  getStoreInfo,
 };

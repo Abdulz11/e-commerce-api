@@ -4,16 +4,17 @@ const {
   getAllProducts,
   postProduct,
   getProduct,
-  getCart,
   getStoreProducts,
   getStoreInfo,
-  getEnums,
+  getCatAndSubCatEnums,
+  editProduct,
 } = require("../controllers/productController");
 const router = express.Router();
 const authMiddleWare = require("../middleware/authMiddleware");
 
 router.get("/", getAllProducts);
-router.get("/enums", getEnums);
+router.get("/categ_and_subCateg_enums", getCatAndSubCatEnums);
+router.put("/edit_product/:productId", authMiddleWare, editProduct);
 router.get("/store_products/:storeId", getStoreProducts);
 router.get("/store_info/:storeId", getStoreInfo);
 router.get("/:id", getProduct);

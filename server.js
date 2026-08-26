@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // routes
-// app.use("/store", storeRouter);
+app.use("/store", storeRouter);
 app.use("/products", productRouter);
 app.use("/user", userRouter);
 

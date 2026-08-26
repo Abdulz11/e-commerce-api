@@ -1,7 +1,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
   moduleFormat = "cjs"
   importFileExtension = "js"
   generatedFileExtension = "js"
@@ -9,7 +8,8 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL_MONGODBONLINE")
+  url=env("DATABASE_URL_MONGODBONLINE")
+ 
 }
 
 model Store{
@@ -17,6 +17,7 @@ model Store{
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name String 
   email String @unique
+  img String?
   description String?
   password String
   role String @default("STORE")
@@ -34,15 +35,37 @@ model Product{
   description String
   imageUrls String[]
   imageIds String[]
-  category String
   tag String[]
   price Int
   currency String @default("₦")
   quantity Int
-  storeId String @db.ObjectId 
-  store Store @relation(fields:[storeId],references:[id])
   createdAt DateTime @default(now())
   cart CartItem[]
+  storeId String @db.ObjectId 
+  subCategoryId String @db.ObjectId
+
+  store Store @relation(fields:[storeId],references:[id])
+  subCategory SubCategory @relation(fields:[subCategoryId],references:[id])
+
+}
+
+
+model Category {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String    @unique
+  subCategories SubCategory[]
+  
+}
+
+
+model SubCategory {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String    @unique
+  categoryId String @db.ObjectId
+  category Category @relation(fields:[categoryId],references:[id])
+  products Product[]
+
+
 }
 
 model Customer{
@@ -60,7 +83,7 @@ model CartItem{
   id String @default(auto()) @id @map("_id") @db.ObjectId
   name String
   description String
-  currency String @default("$")
+  currency String @default("₦")
   price Int
   quantity Int
   imageUrl String
@@ -68,5 +91,6 @@ model CartItem{
   productId String @db.ObjectId
   user Customer @relation(fields:[userId],references:[id])
   product Product @relation(fields:[productId],references:[id])
+  @@unique([userId,productId])
 
 }
