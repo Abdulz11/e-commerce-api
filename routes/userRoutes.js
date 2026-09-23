@@ -9,7 +9,7 @@ const {
   addToCart,
   getCartCount,
 } = require("../controllers/userController");
-const authMiddleWare = require("../middleware/authMiddleware");
+const authMiddleWare = require("../middleware/authenticationMiddleware");
 const router = express.Router();
 
 // router.get("/", getUser);

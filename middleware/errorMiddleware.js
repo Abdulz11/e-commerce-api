@@ -5,6 +5,7 @@ export const errorHandler = (err, req, res, next) => {
     stack: err.stack,
   });
   res.status(500).json({
-    message: `An error occurred while requesting ${req.url} \n ${err?.message}`,
+    message: `An error occurred while requesting ${req.url}`,
+    error: err?.message,
   });
 };

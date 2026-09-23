@@ -1,6 +1,7 @@
 const { hash, compare } = require("bcrypt");
 const prisma = require("../db/db");
 const { getAccessToken, getRefreshToken } = require("../lib/utilityFunctions");
+const { verify } = require("jsonwebtoken");
 
 const getUser = async (req, res, next) => {
   try {
@@ -74,18 +75,14 @@ const registerUser = async (req, res, next) => {
         .status(409)
         .json({ success: false, message: "User with email already exists" });
     }
-    const { name, email, password, location, whatsapp, description } = req.body;
-    // const hashedPassword = await hash(password, 8);
-    const hashedPassword = password;
+    const data = req.body;
+    const { password, name, email } = data;
+    const hashedPassword = await hash(password, 8);
     if (role == "STORE") {
       await prisma.store.create({
         data: {
-          name,
-          email,
+          ...data,
           password: hashedPassword,
-          location,
-          whatsapp,
-          description,
         },
       });
     } else {
@@ -109,7 +106,9 @@ const registerUser = async (req, res, next) => {
 };
 
 const signIn = async (req, res) => {
+  console.log();
   try {
+    console.log(req.body);
     // check if email exist
     const { email, password, role } = req.body;
     let user;
@@ -123,6 +122,7 @@ const signIn = async (req, res) => {
         where: { email: email },
       });
     }
+    console.log(user);
 
     if (!user) {
       return res.status(400).json({
@@ -144,14 +144,13 @@ const signIn = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      path: "user/refresh_token",
+      path: "/user/refresh_token",
     });
     res.send({
       success: true,
       data: {
         accessToken,
         user: {
-          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -168,7 +167,7 @@ const signIn = async (req, res) => {
 const logOut = (req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    path: "user/refresh_token",
+    path: "/user/refresh_token",
   });
   // remove refresh from database as well
   console.log("logged out");
@@ -193,7 +192,7 @@ const getNewAccessToken = async (req, res) => {
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      path: "user/refresh_token",
+      path: "/user/refresh_token",
     });
     res.status(200).send({ accessToken: newAccessToken });
   } catch (e) {

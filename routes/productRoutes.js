@@ -5,22 +5,41 @@ const {
   postProduct,
   getProduct,
   getStoreProducts,
-  getStoreInfo,
+  getStoreProduct,
   getCatAndSubCatEnums,
   editProduct,
 } = require("../controllers/productController");
 const router = express.Router();
-const authMiddleWare = require("../middleware/authMiddleware");
+const authenticateMiddleWare = require("../middleware/authenticationMiddleware");
+const authorizeMiddleWare = require("../middleware/authorizationMiddleware");
 
 router.get("/", getAllProducts);
 router.get("/categ_and_subCateg_enums", getCatAndSubCatEnums);
-router.put("/edit_product/:productId", authMiddleWare, editProduct);
-router.get("/store_products/:storeId", getStoreProducts);
-router.get("/store_info/:storeId", getStoreInfo);
+// router.get(
+//   "/store_products",
+//   authenticateMiddleWare,
+//   authorizeMiddleWare,
+//   getStoreProducts,
+// );
+// router.get(
+//   "/store_products/:productId",
+//   authenticateMiddleWare,
+//   getStoreProduct,
+// );
+
+// each product
 router.get("/:id", getProduct);
+
+router.put(
+  "/edit_product/:productId",
+  authenticateMiddleWare,
+  upload.array("images", 10),
+  editProduct,
+);
+// router.get("/store_info/:storeId", getStoreInfo);
 router.post(
   "/post_product",
-  authMiddleWare,
+  authenticateMiddleWare,
   upload.array("images", 10),
   postProduct,
 );

@@ -18,6 +18,7 @@ model Store{
   name String 
   email String @unique
   img String?
+  imgId String?
   description String?
   password String
   role String @default("STORE")
@@ -28,6 +29,8 @@ model Store{
   
 }
 
+
+
 model Product{
   //id Int @id @default(autoincrement())
   id String @id @default(auto()) @map("_id") @db.ObjectId
@@ -37,13 +40,13 @@ model Product{
   imageIds String[]
   tag String[]
   price Int
-  currency String @default("₦")
+ // currency String @default("₦")
   quantity Int
   createdAt DateTime @default(now())
   cart CartItem[]
   storeId String @db.ObjectId 
   subCategoryId String @db.ObjectId
-
+  
   store Store @relation(fields:[storeId],references:[id])
   subCategory SubCategory @relation(fields:[subCategoryId],references:[id])
 
