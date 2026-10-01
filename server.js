@@ -10,7 +10,7 @@ const { errorHandler } = require("./middleware/errorMiddleware");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://shop-and-drop.vercel.app"],
     credentials: true,
   }),
 );
