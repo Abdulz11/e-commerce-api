@@ -171,7 +171,7 @@ const logOut = (req, res) => {
   });
   // remove refresh from database as well
   console.log("logged out");
-  res.status(204).json({ success: false, message: "logged out" });
+  res.status(200).json({ success: true, message: "logged out" });
 };
 
 const getNewAccessToken = async (req, res) => {

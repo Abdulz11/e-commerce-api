@@ -216,7 +216,11 @@ const getNewAccessToken = async (req, res) => {
     );
     // console.log(token);
     const store = await prisma.store.findUnique({ where: { id: token.id } });
-    if (!store) throw new Error({ accessToken: "", message: "Sign in again" });
+
+    if (!store)
+      return res
+        .status(404)
+        .send({ success: false, message: "User dosent exist.Sign in again" });
     const newAccessToken = getAccessToken(token.id, token.email);
     const newRefreshToken = getRefreshToken(token.id, token.email);
 
@@ -234,7 +238,7 @@ const getNewAccessToken = async (req, res) => {
       },
     });
   } catch (e) {
-    res.send(e.message);
+    res.status(401).send({ message: e.message });
   }
 };
 module.exports = {
