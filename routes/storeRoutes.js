@@ -33,7 +33,7 @@ router.delete(
 router.get("/:storeId/products", authenticateMiddleWare, getStoreProducts);
 router.post("/registration", registerStore);
 router.put(
-  "/edit_profile/:storeId",
+  "/edit_profile/:storeName",
   authenticateMiddleWare,
   upload.single("img"),
   editProfile,

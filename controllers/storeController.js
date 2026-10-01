@@ -79,9 +79,9 @@ const getStoreProducts = async (req, res) => {
 // };
 
 const editProfile = async (req, res, next) => {
-  const storeId = req.params.storeId;
+  // const storeId = req.params.storeId;
 
-  if (storeId !== req.user.id) {
+  if (!req?.user?.id) {
     return res.status(403).send({ message: "Unauthorized" });
   }
   let imgId;
