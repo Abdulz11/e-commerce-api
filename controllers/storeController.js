@@ -153,8 +153,8 @@ const signInStore = async (req, res) => {
     if (!store) {
       return res.status(400).send("store with the email does not exist ");
     }
-    // const doesPasswordMatch = await compare(password, store.password);
-    const doesPasswordMatch = true;
+    const doesPasswordMatch = await compare(password, store.password);
+    // const doesPasswordMatch = true;
 
     if (!doesPasswordMatch) return res.status(400).send("password is wrong");
 
