@@ -43,5 +43,6 @@ router.post(
   upload.array("images", 10),
   postProduct,
 );
+// router.delete("/post_product:productId", authenticateMiddleWare, deleteProduct);
 
 module.exports = router;

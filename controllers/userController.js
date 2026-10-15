@@ -13,6 +13,42 @@ const getUser = async (req, res, next) => {
   }
 };
 
+const viewedProduct = async (req, res, next) => {
+  const id = req?.user?.id;
+  const viewedProductId = req?.params?.productId;
+  try {
+    const user = await prisma.customer.findUnique({ where: { id } });
+    if (!user || user?.role == "STORE") {
+      return res
+        .status(404)
+        .send({ success: false, message: "user dosent exist" });
+    }
+
+    const customer = await prisma.customer.findUnique({ where: { id } });
+    if (customer.viewedItems.includes(viewedProductId)) {
+      return res.send({
+        success: true,
+        message: "This product has already been added",
+      });
+    }
+
+    await prisma.customer.update({
+      where: {
+        id,
+      },
+      data: {
+        viewedItems: {
+          push: viewedProductId,
+        },
+      },
+    });
+    res.send({ success: true, message: "Product added" });
+  } catch (e) {
+    console.log(e.message);
+    next();
+  }
+};
+
 const getCartCount = async (req, res) => {
   const userId = req.params.id;
   let cart = await prisma.cartItem.count({
@@ -58,7 +94,9 @@ const addToCart = async (req, res) => {
 const registerUser = async (req, res, next) => {
   try {
     // check if email has been used
-    const role = req.body.role || "CUSTOMER";
+    const role = req?.body?.role || "CUSTOMER";
+    console.log(role);
+
     let user;
     if (role == "STORE") {
       user = await prisma.store.findUnique({
@@ -76,7 +114,7 @@ const registerUser = async (req, res, next) => {
         .json({ success: false, message: "User with email already exists" });
     }
     const data = req.body;
-    const { password, name, email } = data;
+    const { password } = data;
     const hashedPassword = await hash(password, 8);
     if (role == "STORE") {
       await prisma.store.create({
@@ -88,8 +126,7 @@ const registerUser = async (req, res, next) => {
     } else {
       await prisma.customer.create({
         data: {
-          name,
-          email,
+          ...data,
           password: hashedPassword,
         },
       });
@@ -99,14 +136,14 @@ const registerUser = async (req, res, next) => {
       .status(201)
       .json({ success: true, message: "user created successfully" });
   } catch (e) {
+    console.log("error", e.message);
     res
-      .status(e.status || 500)
-      .send({ success: false, message: e.message || "Internal Server Error" });
+      .status(e?.status || 500)
+      .send({ success: false, message: e?.message || "Internal Server Error" });
   }
 };
 
 const signIn = async (req, res) => {
-  console.log();
   try {
     console.log(req.body);
     // check if email exist
@@ -130,8 +167,7 @@ const signIn = async (req, res) => {
         message: `${role.charAt(0) + role.slice(1).toLowerCase()} with the email ${email} does not exist`,
       });
     }
-    // const doesPasswordMatch = await compare(password, user.password);
-    const doesPasswordMatch = true;
+    const doesPasswordMatch = await compare(password, user.password);
 
     if (!doesPasswordMatch)
       return res.status(400).json({
@@ -139,8 +175,8 @@ const signIn = async (req, res) => {
         message: "Password is wrong",
       });
 
-    const accessToken = getAccessToken(user.id, user.email);
-    const refreshToken = getRefreshToken(user.id, user.email);
+    const accessToken = getAccessToken(user.id, user.email, user.role);
+    const refreshToken = getRefreshToken(user.id, user.email, user.role);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -176,17 +212,24 @@ const logOut = (req, res) => {
 
 const getNewAccessToken = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.send({ accessToken: "", message: "Sign in again" });
+  if (!token)
+    return res.status(401).send({ success: false, message: "Sign in again" });
   try {
     const token = verify(
       req.cookies.refreshToken,
       process.env.REFRESH_TOKEN_SECRET,
     );
     console.log(token);
-    const user = await prisma.user.findUnique({ where: { id: token.id } });
-    if (!user) throw new Error({ accessToken: "", message: "Sign in again" });
-    const newAccessToken = getAccessToken(token.id, token.email);
-    const newRefreshToken = getRefreshToken(token.id, token.email);
+    let user;
+    if (token.role == "CUSTOMER") {
+      user = await prisma.customer.findUnique({ where: { id: token.id } });
+    } else {
+      user = await prisma.store.findUnique({ where: { id: token.id } });
+    }
+    if (!user) throw new Error("User does not exist. Login in again ");
+
+    const newAccessToken = getAccessToken(token.id, token.email, token.role);
+    const newRefreshToken = getRefreshToken(token.id, token.email, token.role);
 
     // replace refresh token in db with the newRefreshToken
 
@@ -196,7 +239,7 @@ const getNewAccessToken = async (req, res) => {
     });
     res.status(200).send({ accessToken: newAccessToken });
   } catch (e) {
-    res.send(e.message);
+    res.status(401).send({ success: false, message: e.message });
   }
 };
 
@@ -209,4 +252,5 @@ module.exports = {
   getNewAccessToken,
   addToCart,
   getCartCount,
+  viewedProduct,
 };

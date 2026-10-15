@@ -3,7 +3,10 @@ const { getAccessToken, getRefreshToken } = require("../lib/utilityFunctions");
 const { verify } = require("jsonwebtoken");
 const { hash } = require("bcrypt");
 const prisma = require("../db/db");
-const { uploadFileToCloudinary } = require("../lib/uploadImages");
+const {
+  uploadFileToCloudinary,
+  deleteImagesFromCloudinary,
+} = require("../lib/uploadImages");
 
 const getStores = async (req, res) => {
   console.log("finding stores");
@@ -79,10 +82,10 @@ const getStoreProducts = async (req, res) => {
 // };
 
 const editProfile = async (req, res, next) => {
-  // const storeId = req.params.storeId;
+  const storeId = req?.user?.id;
 
-  if (!req?.user?.id) {
-    return res.status(403).send({ message: "Unauthorized" });
+  if (!storeId) {
+    return res.status(403).send({ success: false, message: "Unauthorized" });
   }
   let imgId;
   let imgUrl;
@@ -177,23 +180,35 @@ const signInStore = async (req, res) => {
   }
 };
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   const productId = req?.params?.productId;
   const storeId = req?.user?.id;
-  const product = await prisma.product.findFirst({
-    where: { id: productId, storeId },
-  });
-  if (!product) {
-    return res.status(403).send({ message: "Can not find this product" });
-  }
-  const deletedProduct = await prisma.product.delete({
-    where: { id: productId },
-  });
-  if (deletedProduct)
-    return res.status(200).send({
-      message: "Product has been successfully deleted",
+
+  try {
+    const storeProduct = await prisma.product.findUnique({
+      where: { id: productId, storeId },
+    });
+    console.log("storeProduct", storeProduct);
+    if (!storeProduct) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Can not find this product" });
+    }
+
+    await deleteImagesFromCloudinary([...storeProduct.imageIds]);
+
+    const deletedProduct = await prisma.product.delete({
+      where: { id: productId, storeId },
+    });
+    console.log("deletedProduct", deletedProduct);
+
+    res.status(200).send({
+      message: `${storeProduct.name} has been successfully deleted`,
       success: true,
     });
+  } catch (e) {
+    next();
+  }
 };
 
 const logOut = (req, res) => {

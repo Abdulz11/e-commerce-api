@@ -1,12 +1,32 @@
 const cloudinary = require("../cloudinary/cloudinary");
 const prisma = require("../db/db");
-const { uploadFileToCloudinary } = require("../lib/uploadImages");
+const {
+  uploadFileToCloudinary,
+  deleteImagesFromCloudinary,
+} = require("../lib/uploadImages");
 const catAndSubCatEnums = require("../enums/CatandSubCatEnums");
 
 const getCatAndSubCatEnums = (req, res) => {
   return res.status(200).send(catAndSubCatEnums);
 };
 
+// const deleteProduct = async (req, res, next) => {
+//   const storeId = req?.user?.id;
+//   const productId = req?.params?.productId;
+//   try {
+//     const storeProduct = await prisma.product.findUnique({
+//       where: { id: productId, storeId },
+//     });
+//     await deleteImagesFromCloudinary([...storeProduct.imageIds]);
+//     await prisma.product.delete({ where: { id: productId, storeId } });
+//     res.json({
+//       success: true,
+//       message: `${storeProduct.name} has been deleted`,
+//     });
+//   } catch (e) {
+//     next(e);
+//   }
+// };
 const editProduct = async (req, res, next) => {
   const storeId = req?.user?.id;
   const productId = req.params.productId;
@@ -121,7 +141,8 @@ const postProduct = async (req, res, next) => {
     return res.status(409).send("Authentication required");
   }
   const store = await prisma.store.findUnique({ where: { id: req.user.id } });
-  const { name, description, price, quantity, category, currency } = req.body;
+  const { name, description, price, quantity, subcategory, currency } =
+    req.body;
 
   let imageArrBuffer = [];
   let imageIds = [];
@@ -140,12 +161,17 @@ const postProduct = async (req, res, next) => {
         imageIds.push(file?.public_id);
       }
     }
-
+    const subCat = await prisma.subCategory.findUnique({
+      where: { name: subcategory },
+    });
+    if (!subCat)
+      return res
+        .status(401)
+        .send({ success: false, message: "subcategory does not exist" });
     await prisma.product.create({
       data: {
         name,
         description,
-        category,
         price: Number(price),
         quantity: Number(quantity),
         currency,
@@ -156,10 +182,15 @@ const postProduct = async (req, res, next) => {
             id: req.user.id,
           },
         },
+        subCategory: {
+          connect: {
+            id: subCat.id,
+          },
+        },
       },
     });
 
-    res.status(201).send("product posted");
+    res.status(201).send({ success: true, message: "product posted" });
   } catch (e) {
     if (imageIds.length > 0) {
       await Promise.allSettled(
@@ -192,4 +223,5 @@ module.exports = {
   postProduct,
   getProduct,
   editProduct,
+  // deleteProduct,
 };

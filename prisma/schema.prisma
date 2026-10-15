@@ -13,7 +13,6 @@ datasource db {
 }
 
 model Store{
-  //id Int @id @default(autoincrement())
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name String 
   email String @unique
@@ -22,17 +21,30 @@ model Store{
   description String?
   password String
   role String @default("STORE")
-  whatsapp String?
+  whatsapp String
   location String?
   createdAt DateTime @default(now())
   products Product[]
   
 }
 
+model Customer{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String 
+  email String @unique
+  img String?
+  imgId String?
+  password String
+  role String @default("CUSTOMER")
+  cart CartItem[]
+  viewedItems String[]  @db.ObjectId 
+  createdAt DateTime @default(now())
+
+}
+
 
 
 model Product{
-  //id Int @id @default(autoincrement())
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name String
   description String
@@ -40,12 +52,13 @@ model Product{
   imageIds String[]
   tag String[]
   price Int
- // currency String @default("₦")
+  currency String @default("₦")
   quantity Int
   createdAt DateTime @default(now())
   cart CartItem[]
   storeId String @db.ObjectId 
   subCategoryId String @db.ObjectId
+  
   
   store Store @relation(fields:[storeId],references:[id])
   subCategory SubCategory @relation(fields:[subCategoryId],references:[id])
@@ -71,16 +84,7 @@ model SubCategory {
 
 }
 
-model Customer{
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String 
-  email String @unique
-  password String
-  role String @default("CUSTOMER")
-  cart CartItem[]
-  createdAt DateTime @default(now())
 
-}
 
 model CartItem{
   id String @default(auto()) @id @map("_id") @db.ObjectId

@@ -31,15 +31,15 @@ router.delete(
   deleteProduct,
 );
 router.get("/:storeId/products", authenticateMiddleWare, getStoreProducts);
-router.post("/registration", registerStore);
 router.put(
   "/edit_profile/:storeName",
   authenticateMiddleWare,
   upload.single("img"),
   editProfile,
 );
-router.post("/signin", signInStore);
-router.post("/logout", logOut);
-router.post("/refresh_token", getNewAccessToken);
+// router.post("/registration", registerStore);
+// router.post("/signin", signInStore);
+// router.post("/logout", logOut);
+// router.post("/refresh_token", getNewAccessToken);
 
 module.exports = router;

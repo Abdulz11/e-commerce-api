@@ -8,6 +8,7 @@ const {
   getNewAccessToken,
   addToCart,
   getCartCount,
+  viewedProduct,
 } = require("../controllers/userController");
 const authMiddleWare = require("../middleware/authenticationMiddleware");
 const router = express.Router();
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get("/cart", authMiddleWare, getCart);
 router.post("/add_to_cart/:id", authMiddleWare, addToCart);
 router.post("/registration", registerUser);
+router.post("/viewed_products/:productId", authMiddleWare, viewedProduct);
 router.post("/signin", signIn);
 router.get("/cart_count:id", getCartCount);
 router.post("/logout", logOut);
