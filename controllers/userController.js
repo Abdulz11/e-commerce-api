@@ -237,7 +237,17 @@ const getNewAccessToken = async (req, res) => {
       httpOnly: true,
       path: "/user/refresh_token",
     });
-    res.status(200).send({ accessToken: newAccessToken });
+    res.status(200).send({
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+        user: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
+    });
   } catch (e) {
     res.status(401).send({ success: false, message: e.message });
   }
