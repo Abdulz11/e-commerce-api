@@ -70,25 +70,31 @@ const editProduct = async (req, res, next) => {
       });
     }
 
-    const catId = await prisma.category.findUnique({
-      where: { name: data.category },
-    });
     const subCatId = await prisma.subCategory.findUnique({
       where: { name: data.subcategory },
     });
 
     const { category, subcategory, price, quantity, ...productData } = data;
+    const newProduct =
+      imageIds.length > 0
+        ? {
+            ...productData,
+            price: Number(price),
+            quantity: Number(quantity),
+            subCategoryId: subCatId.id,
+            imageIds,
+            imageUrls,
+          }
+        : {
+            ...productData,
+            price: Number(price),
+            quantity: Number(quantity),
+            subCategoryId: subCatId.id,
+          };
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId, storeId: storeId },
-      data: {
-        ...productData,
-        price: Number(price),
-        quantity: Number(quantity),
-        subCategoryId: subCatId.id,
-        imageIds,
-        imageUrls,
-      },
+      data: newProduct,
     });
     console.log(updatedProduct);
     res
@@ -141,7 +147,7 @@ const postProduct = async (req, res, next) => {
     return res.status(409).send("Authentication required");
   }
   const store = await prisma.store.findUnique({ where: { id: req.user.id } });
-  const { name, description, price, quantity, subcategory, currency } =
+  const { name, description, price, quantity, subcategory, currency, tag } =
     req.body;
 
   let imageArrBuffer = [];
@@ -166,12 +172,13 @@ const postProduct = async (req, res, next) => {
     });
     if (!subCat)
       return res
-        .status(401)
+        .status(404)
         .send({ success: false, message: "subcategory does not exist" });
     await prisma.product.create({
       data: {
         name,
         description,
+        tag,
         price: Number(price),
         quantity: Number(quantity),
         currency,
@@ -223,5 +230,4 @@ module.exports = {
   postProduct,
   getProduct,
   editProduct,
-  // deleteProduct,
 };

@@ -7,6 +7,7 @@ const {
   uploadFileToCloudinary,
   deleteImagesFromCloudinary,
 } = require("../lib/uploadImages");
+const { request } = require("express");
 
 const getStores = async (req, res) => {
   console.log("finding stores");
@@ -188,7 +189,6 @@ const deleteProduct = async (req, res, next) => {
     const storeProduct = await prisma.product.findUnique({
       where: { id: productId, storeId },
     });
-    console.log("storeProduct", storeProduct);
     if (!storeProduct) {
       return res
         .status(404)

@@ -15,17 +15,6 @@ const authorizeMiddleWare = require("../middleware/authorizationMiddleware");
 
 router.get("/", getAllProducts);
 router.get("/categ_and_subCateg_enums", getCatAndSubCatEnums);
-// router.get(
-//   "/store_products",
-//   authenticateMiddleWare,
-//   authorizeMiddleWare,
-//   getStoreProducts,
-// );
-// router.get(
-//   "/store_products/:productId",
-//   authenticateMiddleWare,
-//   getStoreProduct,
-// );
 
 // each product
 router.get("/:id", getProduct);
@@ -36,13 +25,12 @@ router.put(
   upload.array("images", 10),
   editProduct,
 );
-// router.get("/store_info/:storeId", getStoreInfo);
+
 router.post(
   "/post_product",
   authenticateMiddleWare,
   upload.array("images", 10),
   postProduct,
 );
-// router.delete("/post_product:productId", authenticateMiddleWare, deleteProduct);
 
 module.exports = router;

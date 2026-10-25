@@ -37,9 +37,5 @@ router.put(
   upload.single("img"),
   editProfile,
 );
-// router.post("/registration", registerStore);
-// router.post("/signin", signInStore);
-// router.post("/logout", logOut);
-// router.post("/refresh_token", getNewAccessToken);
 
 module.exports = router;
